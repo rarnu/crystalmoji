@@ -1,0 +1,12 @@
+name: crystalmoji
+version: 0.1.0
+
+authors:
+  - rarnu <hexj@isyscore.com>
+
+description: |
+  Crystal porting for Kuromoji
+
+crystal: ">= 1.17.1"
+
+license: MIT
