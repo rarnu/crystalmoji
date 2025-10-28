@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "../spec_helper"
 
 describe Crystalmoji do
   t_start = Time.monotonic.total_nanoseconds
