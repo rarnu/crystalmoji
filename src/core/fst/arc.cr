@@ -37,5 +37,9 @@ module CrystalMoji::FST
       result = 3_u64 &* result &+ @destination.hash.to_u64
       (result & 0xFFFFFFFF).to_i32!
     end
+
+    def to_s : String
+      "Arc(label: #{@label}, output: #{@output}, destination: #{@destination})"
+    end
   end
 end

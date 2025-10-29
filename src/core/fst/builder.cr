@@ -17,7 +17,7 @@ module CrystalMoji::FST
       @temp_states << get_start_state
     end
 
-    def build(input_words : Array(String), output_values : Array(Int32))
+    def build(input_words : Array(String), output_values : Array(Int32)?)
       previous_word = ""
       0.upto(input_words.size - 1) do |input_word_idx|
         input_word = input_words[input_word_idx]
@@ -113,7 +113,6 @@ module CrystalMoji::FST
       output = state.find_arc(previous_word_char).try(&.output) || 0
       state.arcs.delete(state.find_arc(previous_word_char))
       arc_to_frozen_state = state.set_arc(previous_word_char, output, find_equivalent_state(@temp_states[i]))
-
       @compiler.compile_state(arc_to_frozen_state.get_destination)
     end
 

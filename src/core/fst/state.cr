@@ -87,5 +87,9 @@ module CrystalMoji::FST
       result = 3_u64 &* result &+ (@is_final ? 1_u64 : 0_u64)
       (result & 0xFFFFFFFF).to_i32!
     end
+
+    def to_s : String
+      "State(arcs: #{@arcs.to_s}, is_final: #{@is_final})"
+    end
   end
 end

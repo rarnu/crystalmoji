@@ -3,8 +3,8 @@ require "./arc"
 
 module CrystalMoji::FST
   class Compiler
-    @@STATE_TYPE_MATCH = 0x00_u8
-    @@STATE_TYPE_ACCEPT = 0x80_u8
+    class_property state_type_match = 0x00_u8
+    class_property state_type_accept = 0x80_u8
     @written = 0_i32
     @data_output : IO
     @written = 0_i32
@@ -72,14 +72,16 @@ module CrystalMoji::FST
       state.arcs.each do |arc|
         write_state_arc(arc, output_bytes, jump_bytes)
       end
-      @data_output << arcs.size
+
+      write_short(arcs.size)
       @written += 2
     end
 
     private def write_state_arc(arc : Arc, output_bytes : Int32, jump_bytes : Int32)
       target = arc.get_destination
       arc_size = 2 + jump_bytes + output_bytes
-      @data_output << arc.label
+
+      write_short(arc.label.ord)
 
       write_int_value(target.target_jump_address, jump_bytes)
       write_int_value(arc.output, output_bytes)
@@ -90,37 +92,43 @@ module CrystalMoji::FST
     private def write_int_value(value : Int32, bytes : Int32)
       case bytes
       when 0
+        # do nothing
       when 1
-        @data_output << (value & 0xff_u8)
+        @data_output.write_byte (value & 0xff_u8).to_u8
       when 2
-        @data_output << ((value >> 8) & 0xff_u8)
-        @data_output << (value & 0xff_u8)
+        @data_output.write_byte ((value >> 8) & 0xff_u8).to_u8
+        @data_output.write_byte (value & 0xff_u8).to_u8
       when 3
-        @data_output << ((value >> 16) & 0xff_u8)
-        @data_output << ((value >> 8) & 0xff_u8)
-        @data_output << (value & 0xff_u8)
+        @data_output.write_byte ((value >> 16) & 0xff_u8).to_u8
+        @data_output.write_byte ((value >> 8) & 0xff_u8).to_u8
+        @data_output.write_byte (value & 0xff_u8).to_u8
       when 4
-        @data_output << ((value >> 24) & 0xff_u8)
-        @data_output << ((value >> 16) & 0xff_u8)
-        @data_output << ((value >> 8) & 0xff_u8)
-        @data_output << (value & 0xff_u8)
+        @data_output.write_byte ((value >> 24) & 0xff_u8).to_u8
+        @data_output.write_byte ((value >> 16) & 0xff_u8).to_u8
+        @data_output.write_byte ((value >> 8) & 0xff_u8).to_u8
+        @data_output.write_byte (value & 0xff_u8).to_u8
       else
         raise "Illegal int byte size: #{bytes}"
       end
     end
 
     private def write_state_type(state : State, output_bytes : Int32, jump_bytes : Int32)
-      state_type : UInt8 = state.is_final ? @@STATE_TYPE_ACCEPT : @@STATE_TYPE_MATCH
+      state_type : UInt8 = state.is_final ? Compiler.state_type_accept : Compiler.state_type_match
       state_type |= (jump_bytes - 1)
       state_type |= (output_bytes << 3)
-      @data_output << state_type
+      @data_output.write_byte state_type
       @written += 1
     end
 
-    def get_bytes : Array(UInt8)
+    def get_bytes : Slice(UInt8)
       # byteArrayOutput.toByteArray();
       @data_output.rewind
-      @data_output.getb_to_end.to_a
+      @data_output.getb_to_end
+    end
+
+    private def write_short(value : Int32)
+      @data_output.write_byte ((value >> 8) & 0xff).to_u8
+      @data_output.write_byte (value & 0xff).to_u8
     end
   end
 end
