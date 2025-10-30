@@ -34,7 +34,7 @@ module CrystalMoji::FST
     def get_all_transition_strings : Array(Char)
       ret_list = [] of Char
       @arcs.each do |arc|
-        ret_list.add(arc.label)
+        ret_list << arc.label
       end
       ret_list.sort
       ret_list
@@ -44,7 +44,7 @@ module CrystalMoji::FST
       @is_final = true
     end
 
-    def is_final : Bool
+    def final? : Bool
       @is_final
     end
 

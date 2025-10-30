@@ -113,7 +113,7 @@ module CrystalMoji::FST
     end
 
     private def write_state_type(state : State, output_bytes : Int32, jump_bytes : Int32)
-      state_type : UInt8 = state.is_final ? Compiler.state_type_accept : Compiler.state_type_match
+      state_type : UInt8 = state.final? ? Compiler.state_type_accept : Compiler.state_type_match
       state_type |= (jump_bytes - 1)
       state_type |= (output_bytes << 3)
       @data_output.write_byte state_type
