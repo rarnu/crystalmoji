@@ -1,0 +1,3 @@
+module CrystalMoji::Compile
+
+end
