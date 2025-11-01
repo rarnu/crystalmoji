@@ -1,5 +1,4 @@
 require "./crystalmoji"
 
-for i = 0, i < 1000000000, i += 1 do
-  puts i
-end
+s = "0020"
+puts s.to_i_0x()

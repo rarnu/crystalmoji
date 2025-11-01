@@ -1,3 +1,5 @@
+require "../util/utf_util"
+
 module CrystalMoji::IIO
   class StringArrayIO
     def self.read_array(input : IO) : Array(String)
@@ -6,7 +8,8 @@ module CrystalMoji::IIO
 
       # 创建数组并读取每个字符串
       Array.new(length) do
-        read_utf_string(input)
+        CrystalMoji::Util::UTFUtil.read_utf(input)
+        # read_utf_string(input)
       end
     end
 
@@ -16,37 +19,9 @@ module CrystalMoji::IIO
 
       # 写入每个字符串
       array.each do |str|
-        write_utf_string(output, str)
+        CrystalMoji::Util::UTFUtil.write_utf(output, str)
+        # write_utf_string(output, str)
       end
-    end
-
-    private def self.read_utf_string(input : IO) : String
-      # 读取字符串长度（Java 的 UTF 格式使用无符号短整型表示长度）
-      length = input.read_bytes(UInt16, IO::ByteFormat::BigEndian).to_i
-      bytes = Bytes.new(length)
-
-      # 读取字符串数据
-      bytes_read = 0
-      while bytes_read < length
-        bytes_read += input.read(bytes + bytes_read, length - bytes_read)
-      end
-
-      # 将字节转换为字符串（UTF-8 编码）
-      String.new(bytes)
-    end
-
-    private def self.write_utf_string(output : IO, str : String) : Nil
-      # 将字符串转换为 UTF-8 字节
-      bytes = str.to_slice
-
-      # 检查长度是否超过限制（Java UTF 使用 2 字节长度）
-      if bytes.size > UInt16::MAX
-        raise "String too long: #{bytes.size} bytes (max: #{UInt16::MAX})"
-      end
-
-      # 写入长度和字节数据
-      output.write_bytes(bytes.size.to_u16, IO::ByteFormat::BigEndian)
-      output.write(bytes)
     end
 
     def self.read_array_2d(input : IO) : Array(Array(String))

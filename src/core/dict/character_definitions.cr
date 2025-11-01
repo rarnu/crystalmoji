@@ -10,7 +10,7 @@ module CrystalMoji::Dict
 
     @@default_category : String = "DEFAULT"
 
-    @category_definitions : Array(Array(Int32))
+    @category_definitions : Array(Array(Int32)?)
     @codepoint_mappings : Array(Array(Int32)?)
     @category_symbols : Array(String)
     @default_category : Array(Int32)
@@ -25,7 +25,7 @@ module CrystalMoji::Dict
       mappings || @default_category
     end
 
-    def lookup_definition(category : Int32) : Array(Int32)
+    def lookup_definition(category : Int32) : Array(Int32)?
       @category_definitions[category]
     end
 

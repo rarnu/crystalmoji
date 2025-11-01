@@ -24,3 +24,13 @@ module CrystalMoji::Util
     end
   end
 end
+
+module StringExtension
+  def to_i_0x() : Int32
+    self.starts_with?("0x") ? self[2, self.size].to_i(16) : self.to_i(16)
+  end
+end
+
+class String
+  include StringExtension
+end

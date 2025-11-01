@@ -75,9 +75,4 @@ describe Crystalmoji do
   puts "4 => #{matches[0].match_start_index}"
 end
 
-describe Crystalmoji do
-
-end
-
-
 

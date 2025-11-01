@@ -1,4 +1,5 @@
 require "./compiler"
+require "../iio/byte_buffer_io"
 
 module CrystalMoji::Compile
   class FSTCompiler
@@ -7,28 +8,16 @@ module CrystalMoji::Compile
     @output : IO
     @surfaces : Array(String)
 
-    def initialize(@output, @surfaces)
+    def initialize(@output, surfaces : Array(String))
+      @surfaces = surfaces.to_set.to_a
     end
 
     def compile
-      surfaces.sort
+      @surfaces.sort!
+      builder = Builder.new
+      builder.build(@surfaces, nil)
+      fst = Slice.new(builder.compiler.bytes)
+      CrystalMoji::IIO::ByteBufferIO.write(@output, fst)
     end
   end
 end
-
-# public class FSTCompiler implements Compiler {
-
-#     @Override
-#     public void compile() throws IOException {
-#         Arrays.sort(surfaces);
-
-#         Builder builder = new Builder();
-#         builder.build(surfaces, null) ;
-
-#         ByteBuffer fst = ByteBuffer.wrap(
-#             builder.getCompiler().getBytes()
-#         );
-
-#         ByteBufferIO.write(output, fst);
-#     }
-# }
