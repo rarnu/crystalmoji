@@ -72,8 +72,8 @@ module CrystalMoji::Util
 
       if has_quote
         text.each_char do |c|
-          if c == QUOTE
-            builder << QUOTE_ESCAPED
+          if c == @@quote
+            builder << @@quote_escaped
           else
             builder << c
           end
@@ -85,9 +85,9 @@ module CrystalMoji::Util
       if has_comma
         builder_string = builder.to_s
         builder = String::Builder.new
-        builder << QUOTE
+        builder << @@quote
         builder << builder_string
-        builder << QUOTE
+        builder << @@quote
       end
 
       builder.to_s
