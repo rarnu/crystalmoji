@@ -10,6 +10,7 @@ module ArrayExtension(T)
   def contains_all?(values : Array(T)) : Bool
     values.all? { |value| contains?(value) }
   end
+
 end
 
 class Array(T)
@@ -41,4 +42,13 @@ end
 
 struct Slice(T)
   include BytesExtension
+end
+
+
+module CrystalMoji::Util
+  class ArrayUtils
+    def self.no_nil(array : Array(Array(T)?)) : Array(Array(T)) forall T
+      array.compact
+    end
+  end
 end

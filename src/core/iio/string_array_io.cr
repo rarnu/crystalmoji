@@ -2,7 +2,7 @@ require "../util/utf_util"
 
 module CrystalMoji::IIO
   class StringArrayIO
-    def self.read_array(input : IO) : Array(String)
+    def self.read_array(input : IO, encoding : String = "UTF-8") : Array(String)
       # 读取数组长度
       length = input.read_bytes(Int32, IO::ByteFormat::BigEndian)
 
@@ -24,13 +24,13 @@ module CrystalMoji::IIO
       end
     end
 
-    def self.read_array_2d(input : IO) : Array(Array(String))
+    def self.read_array_2d(input : IO, encoding : String = "UTF-8") : Array(Array(String))
       # 读取二维数组长度
       length = input.read_bytes(Int32, IO::ByteFormat::BigEndian)
 
       # 创建二维数组并读取每个一维数组
       Array.new(length) do
-        read_array(input)
+        read_array(input, encoding)
       end
     end
 

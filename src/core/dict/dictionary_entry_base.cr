@@ -18,5 +18,9 @@ module CrystalMoji::Dict
         value.to_i16
       end
     end
+
+    def to_s
+      "#{surface}, #{left_id}, #{right_id}, #{word_cost}"
+    end
   end
 end
