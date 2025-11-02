@@ -11,7 +11,7 @@ describe Crystalmoji do
 
   category_map = char_def_compiler.make_character_category_map
 
-  unk_def = File.open("kuromoji-unkdef-.bin", "w")
+  unk_def = File.tempfile("kuromoji-unkdef-.bin")
 
   unk_def_compiler = CrystalMoji::Compile::UnknownDictionaryCompiler.new(category_map, File.open(unk_def.path, "w"))
   unk_def_stream = File.open("./res/unk.def", "r")
@@ -46,55 +46,20 @@ describe Crystalmoji do
   # KANJI feature variety
 
   unknown_dictionary.get_all_features_array(2).should eq(["名詞", "一般", "*", "*", "*", "*", "*"])
+  unknown_dictionary.get_all_features_array(3).should eq(["名詞", "サ変接続", "*", "*", "*", "*", "*"])
+  unknown_dictionary.get_all_features_array(4).should eq(["名詞", "固有名詞", "地域", "一般", "*", "*", "*"])
+  unknown_dictionary.get_all_features_array(5).should eq(["名詞", "固有名詞", "組織", "*", "*", "*", "*"])
+  unknown_dictionary.get_all_features_array(6).should eq(["名詞", "固有名詞", "人名", "一般", "*", "*", "*"])
 
+  # KANJINUMERIC entry
+  unknown_dictionary.lookup_word_ids(categories[1]).should eq([29])
+
+  # KANJINUMERIC costs
+  unknown_dictionary.get_left_id(29).should eq(1295)
+  unknown_dictionary.get_right_id(29).should eq(1295)
+  unknown_dictionary.get_word_cost(29).should eq(27473)
+
+  # KANJINUMERIC features
+  unknown_dictionary.get_all_features_array(29).should eq(["名詞", "数", "*", "*", "*", "*", "*"])
 end
 
-
-
-        # // KANJI feature variety
-        # assertArrayEquals(
-        #     new String[]{"名詞", "一般", "*", "*", "*", "*", "*"},
-        #     unknownDictionary.getAllFeaturesArray(2)
-        # );
-
-        # assertArrayEquals(
-        #     new String[]{"名詞", "サ変接続", "*", "*", "*", "*", "*"},
-        #     unknownDictionary.getAllFeaturesArray(3)
-        # );
-
-        # assertArrayEquals(
-        #     new String[]{"名詞", "固有名詞", "地域", "一般", "*", "*", "*"},
-        #     unknownDictionary.getAllFeaturesArray(4)
-        # );
-
-        # assertArrayEquals(
-        #     new String[]{"名詞", "固有名詞", "組織", "*", "*", "*", "*"},
-        #     unknownDictionary.getAllFeaturesArray(5)
-        # );
-
-        # assertArrayEquals(
-        #     new String[]{"名詞", "固有名詞", "人名", "一般", "*", "*", "*"},
-        #     unknownDictionary.getAllFeaturesArray(6)
-        # );
-
-        # assertArrayEquals(
-        #     new String[]{"名詞", "固有名詞", "人名", "一般", "*", "*", "*"},
-        #     unknownDictionary.getAllFeaturesArray(6)
-        # );
-
-        # // KANJINUMERIC entry
-        # assertArrayEquals(
-        #     new int[]{29},
-        #     unknownDictionary.lookupWordIds(categories[1])
-        # );
-
-        # // KANJINUMERIC costs
-        # assertEquals(1295, unknownDictionary.getLeftId(29));
-        # assertEquals(1295, unknownDictionary.getRightId(29));
-        # assertEquals(27473, unknownDictionary.getWordCost(29));
-
-        # // KANJINUMERIC features
-        # assertArrayEquals(
-        #     new String[]{"名詞", "数", "*", "*", "*", "*", "*"},
-        #     unknownDictionary.getAllFeaturesArray(29)
-        # );

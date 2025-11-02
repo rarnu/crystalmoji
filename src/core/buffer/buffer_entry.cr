@@ -4,11 +4,11 @@ module CrystalMoji::Buffer
     property features : Array(Int32) = [] of Int32
     property pos_info : Array(UInt8) = [] of UInt8
 
-    property token_infos : Array(Int16)
-    property feature_infos : Array(Int32)
-    property pos_infos : Array(UInt8)
+    property token_infos : Array(Int16)? = nil
+    property feature_infos : Array(Int32)? = nil
+    property pos_infos : Array(UInt8)? = nil
 
-    def initialize(@token_infos : Array(Int16), @feature_infos : Array(Int32), @pos_infos : Array(UInt8))
+    def initialize(@token_infos : Array(Int16)? = nil, @feature_infos : Array(Int32)? = nil, @pos_infos : Array(UInt8)? = nil)
     end
   end
 end

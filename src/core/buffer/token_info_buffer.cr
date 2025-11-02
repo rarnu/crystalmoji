@@ -3,8 +3,8 @@ require "./buffer_entry"
 
 module CrystalMoji::Buffer
   class TokenInfoBuffer
-    @@INTEGER_BYTES = 4
-    @@SHORT_BYTES = 2
+    @@integer_bytes = 4
+    @@short_bytes = 2
 
     @buffer : Bytes
     @token_info_count : Int32
@@ -25,24 +25,24 @@ module CrystalMoji::Buffer
 
     # 查找并返回指定偏移量的完整词条信息
     def lookup_entry(offset : Int32) : BufferEntry
-      entry = BufferEntry.new(Array(Int16).new(@token_info_count, 0), Array(Int32).new(@feature_count, 0), Array(Int32).new(@pos_info_count, 0))
+      entry = BufferEntry.new(Array(Int16).new(@token_info_count, 0), Array(Int32).new(@feature_count, 0), Array(UInt8).new(@pos_info_count, 0))
 
       position = get_position(offset, @entry_size)
 
       # 获取左侧ID、右侧ID和单词成本
       @token_info_count.times do |i|
-        entry.token_infos[i] = read_short(position + i * SHORT_BYTES)
+        entry.token_infos.not_nil![i] = read_short(position + i * @@short_bytes)
       end
 
       # 获取词性标签值（还不是字符串）
       @pos_info_count.times do |i|
         # 使用 0xff 进行无符号字节到整数的转换
-        entry.pos_infos[i] = @buffer[position + @token_info_count * SHORT_BYTES + i].to_i32 & 0xff
+        entry.pos_infos.not_nil![i] = (@buffer[position + @token_info_count * @@short_bytes + i].to_i32 & 0xff).to_u8
       end
 
       # 获取字段值引用（字符串引用）
       @feature_count.times do |i|
-        entry.feature_infos[i] = read_int(position + @token_info_count * SHORT_BYTES + @pos_info_count + i * INTEGER_BYTES)
+        entry.feature_infos.not_nil![i] = read_int(position + @token_info_count * @@short_bytes + @pos_info_count + i * @@integer_bytes)
       end
 
       entry
@@ -51,19 +51,19 @@ module CrystalMoji::Buffer
     # 查找特定词条信息
     def lookup_token_info(offset : Int32, i : Int32) : Int32
       position = get_position(offset, @entry_size)
-      read_short(position + i * SHORT_BYTES).to_i32
+      read_short(position + i * @@short_bytes).to_i32
     end
 
     # 查找词性特征
     def lookup_part_of_speech_feature(offset : Int32, i : Int32) : Int32
       position = get_position(offset, @entry_size)
-      @buffer[position + @token_info_count * SHORT_BYTES + i].to_i32 & 0xff
+      @buffer[position + @token_info_count * @@short_bytes + i].to_i32 & 0xff
     end
 
     # 查找特征
     def lookup_feature(offset : Int32, i : Int32) : Int32
       position = get_position(offset, @entry_size)
-      read_int(position + @token_info_count * SHORT_BYTES + @pos_info_count + (i - @pos_info_count) * INTEGER_BYTES)
+      read_int(position + @token_info_count * @@short_bytes + @pos_info_count + (i - @pos_info_count) * @@integer_bytes)
     end
 
     # 检查是否为词性特征
@@ -73,28 +73,28 @@ module CrystalMoji::Buffer
     end
 
     private def get_token_info_count : Int32
-      read_int(INTEGER_BYTES * 2)
+      read_int(@@integer_bytes * 2)
     end
 
     private def get_pos_info_count : Int32
-      ead_int(INTEGER_BYTES * 3)
+      read_int(@@integer_bytes * 3)
     end
 
     private def get_feature_count : Int32
-      read_int(INTEGER_BYTES * 4)
+      read_int(@@integer_bytes * 4)
     end
 
     private def get_entry_size(token_info_count : Int32, pos_info_count : Int32, feature_count : Int32) : Int32
-      token_info_count * SHORT_BYTES + pos_info_count + feature_count * INTEGER_BYTES
+      token_info_count * @@short_bytes + pos_info_count + feature_count * @@integer_bytes
     end
 
     private def get_position(offset : Int32, entry_size : Int32) : Int32
-      offset * entry_size + INTEGER_BYTES * 5
+      offset * entry_size + @@integer_bytes * 5
     end
 
     # 从缓冲区读取整数（大端序）
     private def read_int(position : Int32) : Int32
-      slice = @buffer[position, INTEGER_BYTES]
+      slice = @buffer[position, @@integer_bytes]
       # 大端序转换
       (slice[0].to_i32 & 0xff) << 24 |
         (slice[1].to_i32 & 0xff) << 16 |
@@ -104,7 +104,7 @@ module CrystalMoji::Buffer
 
     # 从缓冲区读取短整数（大端序）
     private def read_short(position : Int32) : Int16
-      slice = @buffer[position, SHORT_BYTES]
+      slice = @buffer[position, @@short_bytes]
       # 大端序转换
       value = ((slice[0].to_i32 & 0xff) << 8) | (slice[1].to_i32 & 0xff)
       value.to_i16
