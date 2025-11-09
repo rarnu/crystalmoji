@@ -1,6 +1,7 @@
 require "./viterbi/**"
 require "./dict/**"
 require "./util/resource_resolver"
+require "./fst/fst"
 
 module CrystalMoji
   abstract class TokenizerBase(T)
@@ -19,7 +20,7 @@ module CrystalMoji
     @user_dictionary : CrystalMoji::Dict::UserDictionary?
     @inserted_dictionary : CrystalMoji::Dict::InsertedDictionary?
     @token_factory : CrystalMoji::Viterbi::TokenFactory(T)?
-    @dictionary_map : Hash(CrystalMoji::Viterbi::ViterbiNode::Type, CrystalMoji::Dict::Dictionary) = Hash(CrystalMoji::Viterbi::ViterbiNode::Type, CrystalMoji::Dict::Dictionary).new
+    @dictionary_map : Hash(CrystalMoji::Viterbi::ViterbiNode::Type, CrystalMoji::Dict::Dictionary?) = Hash(CrystalMoji::Viterbi::ViterbiNode::Type, CrystalMoji::Dict::Dictionary?).new
 
     protected def configure(builder : Builder)
       builder.load_dictionaries
@@ -30,32 +31,32 @@ module CrystalMoji
       @user_dictionary = builder.user_dictionary
       @inserted_dictionary = builder.inserted_dictionary
 
-      @viterbi_builder = ViterbiBuilder.new(
-        builder.fst,
+      @viterbi_builder = CrystalMoji::Viterbi::ViterbiBuilder.new(
+        builder.fst.not_nil!,
         @token_info_dictionary.not_nil!,
         @unknown_dictionary.not_nil!,
         @user_dictionary,
         builder.mode
       )
 
-      @viterbi_searcher = ViterbiSearcher.new(
+      @viterbi_searcher = CrystalMoji::Viterbi::ViterbiSearcher.new(
         builder.mode,
-        builder.connection_costs,
+        builder.connection_costs.not_nil!,
         @unknown_dictionary.not_nil!,
         builder.penalties
       )
 
-      @viterbi_formatter = ViterbiFormatter.new(builder.connection_costs)
+      @viterbi_formatter = CrystalMoji::Viterbi::ViterbiFormatter.new(builder.connection_costs.not_nil!)
       @split = builder.split
 
       init_dictionary_map
     end
 
     private def init_dictionary_map
-      @dictionary_map[ViterbiNode::Type::KNOWN] = @token_info_dictionary.not_nil!
-      @dictionary_map[ViterbiNode::Type::UNKNOWN] = @unknown_dictionary.not_nil!
-      @dictionary_map[ViterbiNode::Type::USER] = @user_dictionary.not_nil!
-      @dictionary_map[ViterbiNode::Type::INSERTED] = @inserted_dictionary.not_nil!
+      @dictionary_map[CrystalMoji::Viterbi::ViterbiNode::Type::Known] = @token_info_dictionary
+      @dictionary_map[CrystalMoji::Viterbi::ViterbiNode::Type::Unknown] = @unknown_dictionary
+      @dictionary_map[CrystalMoji::Viterbi::ViterbiNode::Type::User] = @user_dictionary
+      @dictionary_map[CrystalMoji::Viterbi::ViterbiNode::Type::Inserted] = @inserted_dictionary
     end
 
     def tokenize(text : String) : Array(TokenBase)
@@ -232,12 +233,8 @@ module CrystalMoji
       multi_search_result
     end
 
-
-
-
-
     abstract class Builder(T)
-      property fst : FST?
+      property fst : CrystalMoji::FST::FST?
       property connection_costs : CrystalMoji::Dict::ConnectionCosts?
       property token_info_dictionary : CrystalMoji::Dict::TokenInfoDictionary?
       property unknown_dictionary : CrystalMoji::Dict::UnknownDictionary?
@@ -255,7 +252,7 @@ module CrystalMoji
 
       protected def load_dictionaries
         begin
-          @fst = FST.new_instance(@resolver.not_nil!)
+          @fst = CrystalMoji::FST::FST.new_instance(@resolver.not_nil!)
           @connection_costs = ConnectionCosts.new_instance(@resolver.not_nil!)
           @token_info_dictionary = TokenInfoDictionary.new_instance(@resolver.not_nil!)
           @character_definitions = CharacterDefinitions.new_instance(@resolver.not_nil!)

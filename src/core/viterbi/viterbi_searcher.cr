@@ -51,11 +51,11 @@ module CrystalMoji::Viterbi
         # continue since no array which contains ViterbiNodes exists. Or no previous node exists.
         next if start_index_arr[i].nil? || end_index_arr[i].nil?
 
-        start_index_arr[i].each do |node|
+        start_index_arr[i].not_nil!.each do |node|
           # If array doesn't contain ViterbiNode any more, continue to next index
           break if node.nil?
 
-          update_node(end_index_arr[i], node)
+          update_node(end_index_arr[i].not_nil!, node)
         end
       end
       end_index_arr
@@ -64,7 +64,7 @@ module CrystalMoji::Viterbi
     private def update_node(viterbi_nodes : Array(ViterbiNode), node : ViterbiNode) : Nil
       backward_connection_id = node.left_id
       word_cost = node.word_cost
-      least_path_cost = DEFAULT_COST
+      least_path_cost = @@default_cost
 
       viterbi_nodes.each do |left_node|
         # If array doesn't contain any more ViterbiNodes, continue to next index
@@ -76,7 +76,7 @@ module CrystalMoji::Viterbi
                     word_cost
 
         # Add extra cost for long nodes in "Search mode".
-        if @mode == TokenizerBase::Mode::SEARCH || @mode == TokenizerBase::Mode::EXTENDED
+        if @mode == TokenizerBase::Mode::Search || @mode == TokenizerBase::Mode::Extended
           path_cost += get_penalty_cost(node)
         end
 
@@ -109,6 +109,7 @@ module CrystalMoji::Viterbi
         # In Crystal, we need a way to check if a character is a Kanji (CJK Unified Ideograph)
         # This is a simplified check - you might need a more robust implementation
         # based on the Unicode ranges for CJK Unified Ideographs
+        # TODO kanji only
         unless c.kanji?
           return false
         end

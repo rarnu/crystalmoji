@@ -16,7 +16,7 @@ module CrystalMoji::Dict
     @costs : Array(Array(Int32))
     @features : Array(Array(String))
     @total_features : Int32
-    @character_definition : CharacterDefinitions
+    property character_definition : CharacterDefinitions
 
     def initialize(@character_definition, @entries, @costs, @features, @total_features)
     end
@@ -83,13 +83,13 @@ module CrystalMoji::Dict
       @character_definition
     end
 
-    def self.new_instance(resolver : ResourceResolver, character_definitions : CharacterDefinitions, total_features : Int32) : UnknownDictionary
+    def self.new_instance(resolver : CrystalMoji::Util::ResourceResolver, character_definitions : CharacterDefinitions, total_features : Int32) : UnknownDictionary
       io = resolver.resolve(unknown_dictionary_filename)
 
       begin
-        costs = IntegerArrayIO.read_array_2d(io)
-        references = IntegerArrayIO.read_array_2d(io)
-        features = StringArrayIO.read_array_2d(io)
+        costs = CrystalMoji::IIO::IntegerArrayIO.read_array_2d(io)
+        references = CrystalMoji::IIO::IntegerArrayIO.read_array_2d(io)
+        features = CrystalMoji::IIO::StringArrayIO.read_array_2d(io)
 
         UnknownDictionary.new(character_definitions, references, costs, features, total_features)
       ensure

@@ -14,7 +14,7 @@ module CrystalMoji::Viterbi
 
     def initialize(@fst, @dictionary, @unknown_dictionary, @user_dictionary, mode : CrystalMoji::TokenizerBase::Mode)
       @use_user_dictionary = !@user_dictionary.nil?
-      @search_mode = (mode == CrystalMoji::TokenizerBase::Mode.Search || mode == CrystalMoji::TokenizerBase::Mode.Extended)
+      @search_mode = (mode == CrystalMoji::TokenizerBase::Mode::Search || mode == CrystalMoji::TokenizerBase::Mode::Extended)
       @character_definitions = @unknown_dictionary.character_definition
     end
 
@@ -64,7 +64,7 @@ module CrystalMoji::Viterbi
         if result > 0
           found = true # Don't produce unknown word starting from this index
           @dictionary.lookup_word_ids(result).each do |word_id|
-            node = ViterbiNode.new(word_id, prefix, @dictionary, start_index, ViterbiNode::Type::KNOWN)
+            node = ViterbiNode.from_dict(word_id, prefix, @dictionary, start_index, ViterbiNode::Type::Known)
             lattice.add_node(node, start_index + 1, start_index + 1 + end_index)
           end
         elsif result < 0 # If result is less than zero, continue to next position
@@ -80,8 +80,8 @@ module CrystalMoji::Viterbi
       unknown_word_length = 0
       definition = @character_definitions.lookup_definition(category)
 
-      if definition[CharacterDefinitions::INVOKE] == 1 || !found
-        if definition[CharacterDefinitions::GROUP] == 0
+      if definition[CrystalMoji::Dict::CharacterDefinitions.invoke] == 1 || !found
+        if definition[CrystalMoji::Dict::CharacterDefinitions.group] == 0
           unknown_word_length = 1
         else
           unknown_word_length = 1
@@ -108,7 +108,7 @@ module CrystalMoji::Viterbi
         word_ids = @unknown_dictionary.lookup_word_ids(category) # characters in input text are supposed to be the same
 
         word_ids.each do |word_id|
-          node = ViterbiNode.new(word_id, unk_word, @unknown_dictionary, start_index, ViterbiNode::Type::UNKNOWN)
+          node = ViterbiNode.from_dict(word_id, unk_word, @unknown_dictionary, start_index, ViterbiNode::Type::Unknown)
           lattice.add_node(node, start_index + 1, start_index + 1 + unknown_word_length)
         end
         unknown_word_end_index = start_index + unknown_word_length
@@ -129,7 +129,7 @@ module CrystalMoji::Viterbi
 
         word = text[index, length]
 
-        node = ViterbiNode.new(word_id, word, @user_dictionary.not_nil!, index, ViterbiNode::Type::USER)
+        node = ViterbiNode.from_dict(word_id, word, @user_dictionary.not_nil!, index, ViterbiNode::Type::User)
         node_start_index = index + 1
         node_end_index = node_start_index + length
 
@@ -161,7 +161,7 @@ module CrystalMoji::Viterbi
       start_index = index
       while start_index > 0
         if !node_start_indices[start_index].nil?
-          glue_base = find_glue_node_candidate(index, node_start_indices[start_index], start_index)
+          glue_base = find_glue_node_candidate(index, node_start_indices[start_index]?.not_nil!, start_index)
           if !glue_base.nil?
             length = index + 1 - start_index
             surface = glue_base.surface[0, length]
@@ -180,7 +180,7 @@ module CrystalMoji::Viterbi
       end_index = node_end_index + 1
       while end_index < node_end_indices.size
         if !node_end_indices[end_index].nil?
-          glue_base = find_glue_node_candidate(node_end_index, node_end_indices[end_index], end_index)
+          glue_base = find_glue_node_candidate(node_end_index, node_end_indices[end_index].not_nil!, end_index)
           if !glue_base.nil?
             delta = end_index - node_end_index
             glue_base_surface = glue_base.surface
@@ -228,7 +228,7 @@ module CrystalMoji::Viterbi
         glue_base.right_id,
         glue_base.word_cost,
         start_index,
-        ViterbiNode::Type::INSERTED
+        ViterbiNode::Type::Inserted
       )
     end
   end

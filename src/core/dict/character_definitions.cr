@@ -25,11 +25,11 @@ module CrystalMoji::Dict
       mappings || @default_category
     end
 
-    def lookup_definition(category : Int32) : Array(Int32)?
-      @category_definitions[category]
+    def lookup_definition(category : Int32) : Array(Int32)
+      @category_definitions[category].not_nil!
     end
 
-    def self.new_instance(resolver : ResourceResolver) : CharacterDefinitions
+    def self.new_instance(resolver : CrystalMoji::Util::ResourceResolver) : CharacterDefinitions
       io = resolver.resolve(character_definitions_filename)
 
       begin

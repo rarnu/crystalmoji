@@ -19,26 +19,43 @@ module CrystalMoji::Dict
     end
 
     def self.new_instance(resolver : CrystalMoji::Util::ResourceResolver) : ConnectionCosts
-      io = resolver.resolve(connection_costs_filename)
+      io = resolver.resolve(ConnectionCosts.connection_costs_filename)
       read(io)
     ensure
       io.try(&.close)
     end
 
     private def self.read(input : IO) : ConnectionCosts
-      # 读取 size
       size = read_int32(input)
-
       byte_buffer = CrystalMoji::IIO::ByteBufferIO.read(input)
-      costs
-
-      ConnectionCosts.new(size, costs)
+      short_buffer = as_short_buffer(byte_buffer)
+      ConnectionCosts.new(size, short_buffer)
     end
 
     private def self.read_int32(io : IO) : Int32
-      bytes = io.read_bytes(4)
-      # 假设是大端序，根据实际文件格式调整
+      bytes = Bytes.new(4)
+      io.read(bytes)
       bytes[0].to_i32 << 24 | bytes[1].to_i32 << 16 | bytes[2].to_i32 << 8 | bytes[3].to_i32
+    end
+
+
+
+    private def self.as_short_buffer(bytes : Bytes, byte_order : Symbol = :big) : Slice(Int16)
+      if bytes.size % 2 != 0
+        raise "Byte array size must be even"
+      end
+
+      result = [] of Int16
+
+      bytes.each_slice(2) do |byte_pair|
+        if byte_order == :big
+          result << ((byte_pair[0].to_i16 << 8) | byte_pair[1].to_i16)
+        else
+          result << ((byte_pair[1].to_i16 << 8) | byte_pair[0].to_i16)
+        end
+      end
+
+      result.to_slice
     end
 
   end

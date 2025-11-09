@@ -13,6 +13,10 @@ module CrystalMoji::FST
       init_cache
     end
 
+    def self.new_instance(resolver : CrystalMoji::Util::ResourceResolver) : FST
+      FST.new(resolver.resolve(FST.fst_filename).getb_to_end)
+    end
+
     private def init_cache
       address = @fst.size - 1
 

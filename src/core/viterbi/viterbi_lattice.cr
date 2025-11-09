@@ -18,12 +18,12 @@ module CrystalMoji::Viterbi
     end
 
     def add_bos
-      bos_node = ViterbiNode.new(-1, BOS, 0, 0, 0, -1, ViterbiNode::Type::KNOWN)
+      bos_node = ViterbiNode.new(-1, ViterbiLattice.bos, 0, 0, 0, -1, ViterbiNode::Type::Known)
       add_node(bos_node, 0, 1)
     end
 
     def add_eos
-      eos_node = ViterbiNode.new(-1, EOS, 0, 0, 0, @dimension - 1, ViterbiNode::Type::KNOWN)
+      eos_node = ViterbiNode.new(-1, ViterbiLattice.eos, 0, 0, 0, @dimension - 1, ViterbiNode::Type::Known)
       add_node(eos_node, @dimension - 1, 0)
     end
 
@@ -44,7 +44,7 @@ module CrystalMoji::Viterbi
 
     private def expand_if_needed(index : Int32, arr : Array(Array(ViterbiNode)?), count : Int32)
       if count == 0
-        arr[index] = Array(ViterbiNode).new(10) { ViterbiNode.new } # 假设ViterbiNode有默认构造函数
+        arr[index] = Array(ViterbiNode).new(10)
       end
 
       if arr[index].not_nil!.size <= count
@@ -53,7 +53,7 @@ module CrystalMoji::Viterbi
     end
 
     private def extend_array(array : Array(ViterbiNode)) : Array(ViterbiNode)
-      new_array = Array(ViterbiNode).new(array.size * 2) { ViterbiNode.new }
+      new_array = Array(ViterbiNode).new(array.size * 2)
       array.each_with_index do |item, i|
         new_array[i] = item
       end

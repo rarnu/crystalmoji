@@ -119,24 +119,25 @@ module CrystalMoji::Dict
       features.join(FEATURE_SEPARATOR)
     end
 
-    def self.new_instance(resolver : ResourceResolver) : TokenInfoDictionary
-      dictionary = TokenInfoDictionary.new
-      dictionary.setup(resolver)
-      dictionary
+    def self.new_instance(resolver : CrystalMoji::Util::ResourceResolver) : TokenInfoDictionary
+      # dictionary = TokenInfoDictionary.new(resolver)
+      # dictionary.setup(resolver)
+      # dictionary
+      TokenInfoDictionary.new(resolver)
     end
 
     private def setup(resolver : CrystalMoji::Util::ResourceResolver) : Nil
-      @token_info_buffer = CrystalMoji::Buffer::TokenInfoBuffer.new(resolver.resolve(token_info_dictionary_filename))
-      @string_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(feature_map_filename))
-      @pos_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(pos_map_filename))
-      @word_id_map = CrystalMoji::Buffer::WordIdMap.new(resolver.resolve(targetmap_filename))
+      @token_info_buffer = CrystalMoji::Buffer::TokenInfoBuffer.new(resolver.resolve(TokenInfoDictionary.token_info_dictionary_filename))
+      @string_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(TokenInfoDictionary.feature_map_filename))
+      @pos_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(TokenInfoDictionary.pos_map_filename))
+      @word_id_map = CrystalMoji::Buffer::WordIdMap.new(resolver.resolve(TokenInfoDictionary.targetmap_filename))
     end
 
     def initialize(resolver : CrystalMoji::Util::ResourceResolver)
-      @token_info_buffer = CrystalMoji::Buffer::TokenInfoBuffer.new(resolver.resolve(token_info_dictionary_filename))
-      @string_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(feature_map_filename))
-      @pos_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(pos_map_filename))
-      @word_id_map = CrystalMoji::Buffer::WordIdMap.new(resolver.resolve(targetmap_filename))
+      @token_info_buffer = CrystalMoji::Buffer::TokenInfoBuffer.new(resolver.resolve(TokenInfoDictionary.token_info_dictionary_filename))
+      @string_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(TokenInfoDictionary.feature_map_filename))
+      @pos_values = CrystalMoji::Buffer::StringValueMapBuffer.new(resolver.resolve(TokenInfoDictionary.pos_map_filename))
+      @word_id_map = CrystalMoji::Buffer::WordIdMap.new(resolver.resolve(TokenInfoDictionary.targetmap_filename))
     end
   end
 end
