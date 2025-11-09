@@ -92,7 +92,7 @@ module CrystalMoji::Dict
 
     def get_feature(word_id : Int32, *fields : Int32) : String
       entry = @entries[word_id]
-      entry.get_feature(fields)
+      entry.get_feature(fields.to_a)
     end
 
     private def make_match_details(match_start_index : Int32, details : Array(Int32)) : Array(UserDictionaryMatch)
@@ -277,7 +277,7 @@ module CrystalMoji::Dict
         f << @features[field_number]
       end
 
-      f.join(@@feature_separator)
+      f.join(UserDictionary.feature_separator)
     end
 
     def to_s : String

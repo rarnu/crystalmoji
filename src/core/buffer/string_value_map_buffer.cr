@@ -54,7 +54,8 @@ module CrystalMoji::Buffer
     private def get_string(value_index : Int32, length : Int32) : String
       # UTF-16LE 编码读取（Crystal 默认使用 UTF-8，这里需要特殊处理）
       slice = @buffer[value_index, length]
-      decode_utf16le(slice)
+      # decode_utf16le(slice)
+      String.new(slice, "UTF-16")
     end
 
     private def put(strings : Hash(Int32, String)) : Nil
@@ -92,7 +93,7 @@ module CrystalMoji::Buffer
       if katakana?(string)
         string.size
       else
-        get_utf16le_bytes(string).size
+        get_utf16_bytes(string).size
       end
     end
 
@@ -105,7 +106,7 @@ module CrystalMoji::Buffer
         bytes = get_katakana_bytes(value)
         length = (bytes.size | @@KATAKANA_FLAG).to_u16
       else
-        bytes = get_utf16le_bytes(value)
+        bytes = get_utf16_bytes(value)
         length = bytes.size.to_u16
       end
 
@@ -128,14 +129,9 @@ module CrystalMoji::Buffer
       bytes
     end
 
-    private def get_utf16le_bytes(string : String) : Bytes
+    private def get_utf16_bytes(string : String) : Bytes
       # 将 UTF-8 字符串转换为 UTF-16LE 字节
-      string.encode("UTF-16LE").to_slice
-    end
-
-    private def decode_utf16le(slice : Bytes) : String
-      # 将 UTF-16LE 字节转换为 UTF-8 字符串
-      String.new(slice, "UTF-16LE")
+      string.encode("UTF-16").to_slice
     end
 
     # 判断字符串是否全部为片假名

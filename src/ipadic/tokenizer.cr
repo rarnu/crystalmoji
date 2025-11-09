@@ -7,20 +7,14 @@ require "../core/util/simple_resource_resolver"
 module CrystalMoji::Ipadic
   class Tokenizer < CrystalMoji::TokenizerBase(Token)
 
-    @kanji_penalty_length_threshold : Int32
-    @kanji_penalty : Int32
-    @other_penalty_length_threshold : Int32
-    @other_penalty : Int32
-    @nakaguro_split : Bool
+    def initialize(builder : Builder)
 
-    def initialize
-      builder = Builder.new
-      @kanji_penalty_length_threshold = builder.kanji_penalty_length_threshold
-      @kanji_penalty = builder.kanji_penalty
-      @other_penalty_length_threshold = builder.other_penalty_length_threshold
-      @other_penalty = builder.other_penalty
-      @nakaguro_split = builder.nakaguro_split
       configure(builder)
+    end
+
+    def self.new() : Tokenizer
+      builder = Builder.new
+      Tokenizer.new(builder)
     end
 
     def tokenize(text : String) : Array(Token)
@@ -54,7 +48,7 @@ module CrystalMoji::Ipadic
         include CrystalMoji::Viterbi::TokenFactory(Token)
 
         def create_token(word_id : Int32, surface : String, type : CrystalMoji::Viterbi::ViterbiNode::Type, position : Int32, dictionary : CrystalMoji::Dict::Dictionary) : Token
-          Token.new(wordId, surface, type, position, dictionary)
+          Token.new(word_id, surface, type, position, dictionary)
         end
       end
 

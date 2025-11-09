@@ -2,6 +2,7 @@ require "../dict/**"
 require "../tokenizer_base"
 require "./viterbi_searcher"
 require "./viterbi_node"
+require "../util/queue_util"
 
 module CrystalMoji::Viterbi
   class MultiSearcher
@@ -22,7 +23,7 @@ module CrystalMoji::Viterbi
       multi_search_result = MultiSearchResult.new
       build_sidetracks(lattice)
 
-      eos = lattice.end_index_arr[0][0]
+      eos = lattice.end_index_arr[0].not_nil![0].not_nil!
       @base_cost = eos.path_cost
 
       paths = get_paths(eos, max_count, cost_slack)
@@ -42,8 +43,8 @@ module CrystalMoji::Viterbi
 
       current_sidetrack = sidetrack_edge
 
-      while node.left_node
-        left_node = node.left_node
+      while node.not_nil!.left_node
+        left_node = node.not_nil!.left_node
 
         if current_sidetrack && current_sidetrack.head == node
           left_node = current_sidetrack.tail
@@ -51,7 +52,7 @@ module CrystalMoji::Viterbi
         end
 
         node = left_node
-        result.unshift(node)
+        result.unshift(node.not_nil!)
       end
 
       result.to_a
@@ -62,11 +63,11 @@ module CrystalMoji::Viterbi
       result << nil
       @path_costs << @base_cost
 
-      sidetrack_heap = PriorityQueue(SidetrackEdge, Int32).new
+      sidetrack_heap = CrystalMoji::Util::PriorityQueue(SidetrackEdge).new
 
       side_track_edge = @sidetracks[eos]?
       while side_track_edge
-        sidetrack_heap.push(side_track_edge, side_track_edge.cost)
+        sidetrack_heap.push(side_track_edge)
         side_track_edge = side_track_edge.next_option
       end
 
@@ -74,17 +75,17 @@ module CrystalMoji::Viterbi
         break if sidetrack_heap.empty?
 
         side_track_edge = sidetrack_heap.pop
-        break if side_track_edge.cost > cost_slack
+        break if side_track_edge.not_nil!.cost > cost_slack
 
         result << side_track_edge
-        @path_costs << @base_cost + side_track_edge.cost
+        @path_costs << @base_cost + side_track_edge.not_nil!.cost
 
-        next_sidetrack = @sidetracks[side_track_edge.tail]?
+        next_sidetrack = @sidetracks[side_track_edge.not_nil!.tail]?
 
         while next_sidetrack
           next_edge = SidetrackEdge.new(next_sidetrack.cost, next_sidetrack.tail, next_sidetrack.head)
           next_edge.parent = side_track_edge
-          sidetrack_heap.push(next_edge, next_edge.cost)
+          sidetrack_heap.push(next_edge)
           next_sidetrack = next_sidetrack.next_option
         end
       end
@@ -99,14 +100,14 @@ module CrystalMoji::Viterbi
       (1...start_index_arr.size).each do |i|
         next unless start_index_arr[i] && end_index_arr[i]
 
-        start_index_arr[i].each do |node|
+        start_index_arr[i].not_nil!.each do |node|
           break unless node
-          build_sidetracks_for_node(end_index_arr[i], node)
+          build_sidetracks_for_node(end_index_arr.not_nil![i].not_nil!, node)
         end
       end
     end
 
-    private def build_sidetracks_for_node(left_nodes : Array(ViterbiNode), node : ViterbiNode)
+    private def build_sidetracks_for_node(left_nodes : Array(ViterbiNode?), node : ViterbiNode)
       backward_connection_id = node.left_id
       word_cost = node.word_cost
 
@@ -117,7 +118,7 @@ module CrystalMoji::Viterbi
         break unless left_node
 
         # Ignore BOS
-        if left_node.type == ViterbiNode::Type::KNOWN && left_node.word_id == -1
+        if left_node.type == CrystalMoji::Viterbi::ViterbiNode::Type::Known && left_node.word_id == -1
           next
         end
 
@@ -125,7 +126,7 @@ module CrystalMoji::Viterbi
                           @costs.get(left_node.right_id, backward_connection_id)
 
         if @mode.search? || @mode.extended?
-          side_track_cost += @viterbi_searcher.penalty_cost(node)
+          side_track_cost += @viterbi_searcher.not_nil!.get_penalty_cost(node)
         end
 
         if left_node != node.left_node

@@ -112,7 +112,7 @@ module CrystalMoji
         return convert_multi_search_result_to_list(create_multi_search_result(text, max_count, cost_slack))
       end
 
-      results = [] of MultiSearchResult
+      results = [] of CrystalMoji::Viterbi::MultiSearchResult
       offset = 0
 
       split_positions.each do |position|
@@ -124,22 +124,22 @@ module CrystalMoji
         results << create_multi_search_result(text[offset..], max_count, cost_slack)
       end
 
-      merger = MultiSearchMerger.new(max_count, cost_slack)
+      merger = CrystalMoji::Viterbi::MultiSearchMerger.new(max_count, cost_slack)
       merged_result = merger.merge(results)
 
       convert_multi_search_result_to_list(merged_result)
     end
 
-    private def convert_multi_search_result_to_list(multi_search_result : MultiSearchResult) : Array(Array(T))
+    private def convert_multi_search_result_to_list(multi_search_result : CrystalMoji::Viterbi::MultiSearchResult) : Array(Array(T))
       result = [] of Array(T)
 
-      paths = multi_search_result.tokenized_results_list
+      paths = multi_search_result.get_tokenized_results_list
 
       paths.each do |path|
         tokens = [] of T
         path.each do |node|
           word_id = node.word_id
-          if node.type == ViterbiNode::Type::KNOWN && word_id == -1 # Do not include BOS/EOS
+          if node.type == CrystalMoji::Viterbi::ViterbiNode::Type::Known && word_id == -1 # Do not include BOS/EOS
             next
           end
 
@@ -148,7 +148,7 @@ module CrystalMoji
             node.surface,
             node.type,
             node.start_index,
-            @dictionary_map[node.type]
+            @dictionary_map[node.type].not_nil!
           ).as(T)
           tokens << token
         end
@@ -185,13 +185,20 @@ module CrystalMoji
         index_of_maru = text.index("。", current_position)
         index_of_ten = text.index("、", current_position)
 
-        position = if index_of_maru.nil? || index_of_ten.nil?
-          [index_of_maru, index_of_ten].compact.max
-        else
-          {index_of_maru, index_of_ten}.min
+        if index_of_maru.nil?
+          index_of_maru = -1
+        end
+        if index_of_ten.nil?
+          index_of_ten = -1
         end
 
-        if position
+        position = (if index_of_maru < 0 || index_of_ten < 0
+          Math.max(index_of_maru, index_of_ten)
+        else
+          Math.min(index_of_maru, index_of_ten)
+        end).to_i32
+
+        if position >= 0
           split_positions << position
           current_position = position + 1
         else
@@ -202,15 +209,17 @@ module CrystalMoji
       split_positions
     end
 
+
     private def create_token_list(offset : Int32, text : String) : Array(T)
       result = [] of T
 
       lattice = @viterbi_builder.not_nil!.build(text)
+
       best_path = @viterbi_searcher.not_nil!.search(lattice)
 
       best_path.each do |node|
         word_id = node.word_id
-        if node.type == ViterbiNode::Type::KNOWN && word_id == -1 # Do not include BOS/EOS
+        if node.type == CrystalMoji::Viterbi::ViterbiNode::Type::Known && word_id == -1 # Do not include BOS/EOS
           next
         end
 
@@ -219,7 +228,7 @@ module CrystalMoji
           node.surface,
           node.type,
           offset + node.start_index,
-          @dictionary_map[node.type]
+          @dictionary_map[node.type].not_nil!
         ).as(T)
         result << token
       end
@@ -227,7 +236,7 @@ module CrystalMoji
       result
     end
 
-    private def create_multi_search_result(text : String, max_count : Int32, cost_slack : Int32) : MultiSearchResult
+    private def create_multi_search_result(text : String, max_count : Int32, cost_slack : Int32) : CrystalMoji::Viterbi::MultiSearchResult
       lattice = @viterbi_builder.not_nil!.build(text)
       multi_search_result = @viterbi_searcher.not_nil!.search_multiple(lattice, max_count, cost_slack)
       multi_search_result
@@ -268,7 +277,7 @@ module CrystalMoji
       abstract def build : TokenizerBase
 
       def user_dictionary(input : IO) : self
-        @user_dictionary = UserDictionary.new(input, @total_features, @reading_feature, @part_of_speech_feature)
+        @user_dictionary = CrystalMoji::Dict::UserDictionary.new(input, @total_features, @reading_feature, @part_of_speech_feature)
         self
       end
 

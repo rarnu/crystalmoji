@@ -33,17 +33,17 @@ module CrystalMoji::Viterbi
 
     def search(lattice : ViterbiLattice) : Array(ViterbiNode)
       end_index_arr = calculate_path_costs(lattice)
-      result = backtrack_best_path(end_index_arr[0][0])
+      result = backtrack_best_path(end_index_arr[0].not_nil![0].not_nil!)
       result
     end
 
     def search_multiple(lattice : ViterbiLattice, max_count : Int32, cost_slack : Int32) : MultiSearchResult
       calculate_path_costs(lattice)
-      result = @multi_searcher.get_shortest_paths(lattice, max_count, cost_slack)
+      result = @multi_searcher.not_nil!.get_shortest_paths(lattice, max_count, cost_slack)
       result
     end
 
-    private def calculate_path_costs(lattice : ViterbiLattice) : Array(Array(ViterbiNode))
+    private def calculate_path_costs(lattice : ViterbiLattice) : Array(Array(ViterbiNode?)?)
       start_index_arr = lattice.start_index_arr
       end_index_arr = lattice.end_index_arr
 
@@ -61,7 +61,7 @@ module CrystalMoji::Viterbi
       end_index_arr
     end
 
-    private def update_node(viterbi_nodes : Array(ViterbiNode), node : ViterbiNode) : Nil
+    private def update_node(viterbi_nodes : Array(ViterbiNode?), node : ViterbiNode) : Nil
       backward_connection_id = node.left_id
       word_cost = node.word_cost
       least_path_cost = @@default_cost
@@ -105,16 +105,7 @@ module CrystalMoji::Viterbi
     end
 
     private def kanji_only?(surface : String) : Bool
-      surface.each_char do |c|
-        # In Crystal, we need a way to check if a character is a Kanji (CJK Unified Ideograph)
-        # This is a simplified check - you might need a more robust implementation
-        # based on the Unicode ranges for CJK Unified Ideographs
-        # TODO kanji only
-        unless c.kanji?
-          return false
-        end
-      end
-      true
+      surface.chars.all? { |c| ('\u4E00'..'\u9FFF').includes?(c) }
     end
 
     private def backtrack_best_path(eos : ViterbiNode) : Array(ViterbiNode)
@@ -129,7 +120,7 @@ module CrystalMoji::Viterbi
         break if left_node.nil?
 
         # Extended mode converts unknown word into unigram nodes
-        if @mode == TokenizerBase::Mode::EXTENDED && left_node.type == ViterbiNode::Type::UNKNOWN
+        if @mode == TokenizerBase::Mode::Extended && left_node.type == ViterbiNode::Type::Unknown
           uni_gram_nodes = convert_unknown_word_to_unigram_node(left_node)
           result.concat(uni_gram_nodes)
         else
@@ -149,7 +140,7 @@ module CrystalMoji::Viterbi
         word = surface[i - 1, 1]
         start_index = node.start_index + i - 1
 
-        uni_gram_node = ViterbiNode.new(unigram_word_id, word, @unknown_dictionary, start_index, ViterbiNode::Type::UNKNOWN)
+        uni_gram_node = ViterbiNode.from_dict(unigram_word_id, word, @unknown_dictionary, start_index, ViterbiNode::Type::Unknown)
         uni_gram_nodes.unshift(uni_gram_node)
       end
 

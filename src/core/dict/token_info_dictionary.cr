@@ -1,6 +1,7 @@
 require "./dictionary"
 require "../buffer/**"
 require "../util/resource_resolver"
+require "../util/dictionary_entry_line_parser"
 
 module CrystalMoji::Dict
   class TokenInfoDictionary
@@ -41,13 +42,13 @@ module CrystalMoji::Dict
     def get_all_features_array(word_id : Int32) : Array(String)
       buffer_entry = @token_info_buffer.lookup_entry(word_id)
 
-      pos_length = buffer_entry.pos_infos.size
-      feature_length = buffer_entry.feature_infos.size
+      pos_length = buffer_entry.pos_infos.not_nil!.size
+      feature_length = buffer_entry.feature_infos.not_nil!.size
 
       part_of_speech_as_shorts = false
 
       if pos_length == 0
-        pos_length = buffer_entry.token_infos.size - TOKEN_INFO_OFFSET
+        pos_length = buffer_entry.token_infos.not_nil!.size - @@token_info_offset
         part_of_speech_as_shorts = true
       end
 
@@ -55,18 +56,18 @@ module CrystalMoji::Dict
 
       if part_of_speech_as_shorts
         (0...pos_length).each do |i|
-          feature = buffer_entry.token_infos[i + TOKEN_INFO_OFFSET]
+          feature = buffer_entry.token_infos.not_nil![i + @@token_info_offset]
           result << @pos_values.get(feature)
         end
       else
         (0...pos_length).each do |i|
-          feature = buffer_entry.pos_infos[i] & 0xff
+          feature = buffer_entry.pos_infos.not_nil![i] & 0xff
           result << @pos_values.get(feature)
         end
       end
 
       (0...feature_length).each do |i|
-        feature = buffer_entry.feature_infos[i]
+        feature = buffer_entry.feature_infos.not_nil![i]
         s = @string_values.get(feature)
         result << s
       end
@@ -78,7 +79,7 @@ module CrystalMoji::Dict
       features = get_all_features_array(word_id)
 
       features.map! do |feature|
-        DictionaryEntryLineParser.escape(feature)
+        CrystalMoji::Util::DictionaryEntryLineParser.escape(feature)
       end
 
       features.join(@@feature_separator)
@@ -89,7 +90,7 @@ module CrystalMoji::Dict
         return extract_single_feature(word_id, fields[0])
       end
 
-      extract_multiple_features(word_id, fields)
+      extract_multiple_features(word_id, fields.to_a)
     end
 
     private def extract_single_feature(word_id : Int32, field : Int32) : String
@@ -113,16 +114,13 @@ module CrystalMoji::Dict
 
       fields.each do |field_number|
         feature = all_features[field_number]
-        features << DictionaryEntryLineParser.escape(feature)
+        features << CrystalMoji::Util::DictionaryEntryLineParser.escape(feature)
       end
 
-      features.join(FEATURE_SEPARATOR)
+      features.join(@@feature_separator)
     end
 
     def self.new_instance(resolver : CrystalMoji::Util::ResourceResolver) : TokenInfoDictionary
-      # dictionary = TokenInfoDictionary.new(resolver)
-      # dictionary.setup(resolver)
-      # dictionary
       TokenInfoDictionary.new(resolver)
     end
 

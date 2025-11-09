@@ -19,15 +19,16 @@ module CrystalMoji::Viterbi
     end
 
     def build(text : String) : ViterbiLattice
+
       text_length = text.size
+
       lattice = ViterbiLattice.new(text_length + 2)
 
       lattice.add_bos
 
       unknown_word_end_index = -1 # index of the last character of unknown word
 
-      start_index = 0
-      while start_index < text_length
+      for start_index = 0, start_index < text_length, start_index += 1 do
         # If no token ends where current token starts, skip this index
         if lattice.token_ends_where_current_token_starts(start_index)
           suffix = text[start_index..-1]
@@ -42,7 +43,6 @@ module CrystalMoji::Viterbi
             end
           end
         end
-        start_index += 1
       end
 
       if @use_user_dictionary
@@ -56,9 +56,9 @@ module CrystalMoji::Viterbi
 
     private def process_index(lattice : ViterbiLattice, start_index : Int32, suffix : String) : Bool
       found = false
-      end_index = 1
-      while end_index < suffix.size + 1
+      for end_index = 1, end_index < suffix.size + 1, end_index += 1 do
         prefix = suffix[0, end_index]
+
         result = @fst.lookup(prefix)
 
         if result > 0
@@ -70,7 +70,6 @@ module CrystalMoji::Viterbi
         elsif result < 0 # If result is less than zero, continue to next position
           break
         end
-        end_index += 1
       end
       found
     end
@@ -161,7 +160,7 @@ module CrystalMoji::Viterbi
       start_index = index
       while start_index > 0
         if !node_start_indices[start_index].nil?
-          glue_base = find_glue_node_candidate(index, node_start_indices[start_index]?.not_nil!, start_index)
+          glue_base = find_glue_node_candidate(index, node_start_indices[start_index].not_nil!, start_index)
           if !glue_base.nil?
             length = index + 1 - start_index
             surface = glue_base.surface[0, length]
@@ -194,7 +193,7 @@ module CrystalMoji::Viterbi
       end
     end
 
-    private def find_glue_node_candidate(index : Int32, lattice_nodes : Array(ViterbiNode), start_index : Int32) : ViterbiNode?
+    private def find_glue_node_candidate(index : Int32, lattice_nodes : Array(ViterbiNode?), start_index : Int32) : ViterbiNode?
       candidates = [] of ViterbiNode
 
       lattice_nodes.each do |viterbi_node|

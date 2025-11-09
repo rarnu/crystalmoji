@@ -1,4 +1,5 @@
 require "./bits"
+require "../iio/byte_buffer_io"
 
 module CrystalMoji::FST
   class FST
@@ -14,7 +15,7 @@ module CrystalMoji::FST
     end
 
     def self.new_instance(resolver : CrystalMoji::Util::ResourceResolver) : FST
-      FST.new(resolver.resolve(FST.fst_filename).getb_to_end)
+      FST.new(CrystalMoji::IIO::ByteBufferIO.read(resolver.resolve(FST.fst_filename)))
     end
 
     private def init_cache

@@ -107,7 +107,11 @@ module CrystalMoji::Buffer
       slice = @buffer[position, @@short_bytes]
       # 大端序转换
       value = ((slice[0].to_i32 & 0xff) << 8) | (slice[1].to_i32 & 0xff)
-      value.to_i16
+      if value > Int16::MAX
+        ((value & Int16::MAX) - Int16::MAX - 1).to_i16
+      else
+        value.to_i16
+      end
     end
   end
 end
