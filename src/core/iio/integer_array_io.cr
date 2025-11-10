@@ -1,7 +1,7 @@
 module CrystalMoji::IIO
   class IntegerArrayIO
     # Crystal 中 Int32 的大小是 4 字节
-    @@INT_BYTES = 4
+    @@int_bytes = 4
 
     def self.read_arrays(input : IO, array_count : Int32) : Array(Array(Int32))
       Array.new(array_count) do
