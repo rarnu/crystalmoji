@@ -1,8 +1,5 @@
 require "../spec_helper"
 
-def given(input : String) : String
-  CrystalMoji::Util::DictionaryEntryLineParser.parse_line(input).join(",")
-end
 
 describe Crystalmoji do
   puts CrystalMoji::Util::DictionaryEntryLineParser.parse_line("日本経済新聞,日本 経済 新聞,ニホン ケイザイ シンブン,カスタム名詞")

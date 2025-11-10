@@ -52,8 +52,8 @@ module CrystalMoji::Ipadic
     end
 
     def furigana : String
-      kata_kana = to_kata_kana(surface)
-      if kata_kana == to_kata_kana(self.get_reading) || self.get_reading == "*"
+      kata_kana = to_katakana(surface)
+      if kata_kana == to_katakana(self.get_reading) || self.get_reading == "*"
         return surface
       end
       s1_ori = surface
@@ -84,7 +84,7 @@ module CrystalMoji::Ipadic
     end
 
 
-    private def to_kata_kana(s : String) : String
+    private def to_katakana(s : String) : String
       str = ""
       s.each_char do |c|
         idx = @@hiragana.index(c)

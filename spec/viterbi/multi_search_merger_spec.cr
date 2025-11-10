@@ -1,31 +1,5 @@
 require "../spec_helper"
 
-def make_result(surfaces : Array(Array(String)), cost : Array(Int32)) : CrystalMoji::Viterbi::MultiSearchResult
-  ret = CrystalMoji::Viterbi::MultiSearchResult.new
-  for i = 0, i < surfaces.size, i += 1 do
-    ret.add(make_nodes(surfaces[i]), cost[i])
-  end
-  ret
-end
-
-def make_nodes(surfaces : Array(String)) : Array(CrystalMoji::Viterbi::ViterbiNode)
-  ret = Array(CrystalMoji::Viterbi::ViterbiNode).new
-  surfaces.each do |s|
-    ret << CrystalMoji::Viterbi::ViterbiNode.new(0, s, 0, 0, 0, 0, CrystalMoji::Viterbi::ViterbiNode::Type::Known)
-  end
-  ret
-end
-
-def get_space_separated_tokens(nodes : Array(CrystalMoji::Viterbi::ViterbiNode)) : String
-  return "" if nodes.empty?
-  sb = String::Builder.new
-  sb << nodes[0].surface
-  for i = 1, i < nodes.size, i += 1 do
-    sb << " "
-    sb << nodes[i].surface
-  end
-  sb.to_s
-end
 
 describe Crystalmoji do
   merger = CrystalMoji::Viterbi::MultiSearchMerger.new(3, 8)

@@ -3,11 +3,11 @@ require "../iio/byte_buffer_io"
 module CrystalMoji::Buffer
   class StringValueMapBuffer
     # 常量定义
-    @@INTEGER_BYTES = 4
-    @@SHORT_BYTES = 2
-    @@KATAKANA_FLAG = 0x8000_u16
-    @@KATAKANA_LENGTH_MASK = 0x7fff_u16
-    @@KATAKANA_BASE = '\u3000' # 片假名起始于 U+3000
+    @@integer_bytes = 4
+    @@short_bytes = 2
+    @@katakana_flag = 0x8000_u16
+    @@katakana_length_mask = 0x7fff_u16
+    @@katakana_base = '\u3000' # 片假名起始于 U+3000
 
     @buffer : Bytes = Bytes.empty
     @size : Int32 = 0
@@ -25,15 +25,15 @@ module CrystalMoji::Buffer
     def get(key : Int32) : String
       raise "Key out of range: #{key}" unless key >= 0 && key < @size
 
-      key_index = (key + 1) * @@INTEGER_BYTES
+      key_index = (key + 1) * @@integer_bytes
       value_index = read_int(key_index)
       length = read_short(value_index).to_i32
 
-      if (length & @@KATAKANA_FLAG) != 0
-        length &= @@KATAKANA_LENGTH_MASK
-        get_katakana_string(value_index + @@SHORT_BYTES, length)
+      if (length & @@katakana_flag) != 0
+        length &= @@katakana_length_mask
+        get_katakana_string(value_index + @@short_bytes, length)
       else
-        get_string(value_index + @@SHORT_BYTES, length)
+        get_string(value_index + @@short_bytes, length)
       end
     end
 
@@ -45,7 +45,7 @@ module CrystalMoji::Buffer
     private def get_katakana_string(value_index : Int32, length : Int32) : String
       String.build(length) do |str|
         length.times do |i|
-          char_code = @@KATAKANA_BASE.ord + @buffer[value_index + i]
+          char_code = @@katakana_base.ord + @buffer[value_index + i]
           str << char_code.chr
         end
       end
@@ -68,23 +68,23 @@ module CrystalMoji::Buffer
       # 写入条目数量
       write_int(0, @size)
 
-      key_index = @@INTEGER_BYTES # 第一个键索引在大小之后
-      entry_index = key_index + @size * @@INTEGER_BYTES
+      key_index = @@integer_bytes # 第一个键索引在大小之后
+      entry_index = key_index + @size * @@integer_bytes
 
       # 按键排序后处理
       strings.keys.sort.each do |key|
         value = strings[key]
         write_int(key_index, entry_index)
         entry_index = put_string(entry_index, value)
-        key_index += @@INTEGER_BYTES
+        key_index += @@integer_bytes
       end
     end
 
     private def calculate_size(strings : Hash(Int32, String)) : Int32
-      size = @@INTEGER_BYTES + strings.size * @@INTEGER_BYTES
+      size = @@integer_bytes + strings.size * @@integer_bytes
 
       strings.each_value do |value|
-        size += @@SHORT_BYTES + get_byte_size(value)
+        size += @@short_bytes + get_byte_size(value)
       end
       size
     end
@@ -104,7 +104,7 @@ module CrystalMoji::Buffer
 
       if is_katakana
         bytes = get_katakana_bytes(value)
-        length = (bytes.size | @@KATAKANA_FLAG).to_u16
+        length = (bytes.size | @@katakana_flag).to_u16
       else
         bytes = get_utf16_bytes(value)
         length = bytes.size.to_u16
@@ -115,16 +115,16 @@ module CrystalMoji::Buffer
       # 写入长度和字节数据
       write_short(index, length)
       bytes.each_with_index do |byte, i|
-        @buffer[index + @@SHORT_BYTES + i] = byte
+        @buffer[index + @@short_bytes + i] = byte
       end
 
-      index + @@SHORT_BYTES + bytes.size
+      index + @@short_bytes + bytes.size
     end
 
     private def get_katakana_bytes(string : String) : Bytes
       bytes = Bytes.new(string.size)
       string.each_char_with_index do |char, i|
-        bytes[i] = (char.ord - @@KATAKANA_BASE.ord).to_u8
+        bytes[i] = (char.ord - @@katakana_base.ord).to_u8
       end
       bytes
     end
@@ -145,7 +145,7 @@ module CrystalMoji::Buffer
 
     # 辅助方法：从缓冲区读取整数（大端序）
     private def read_int(position : Int32) : Int32
-      slice = @buffer[position, @@INTEGER_BYTES]
+      slice = @buffer[position, @@integer_bytes]
       (slice[0].to_i32 & 0xff) << 24 |
         (slice[1].to_i32 & 0xff) << 16 |
         (slice[2].to_i32 & 0xff) << 8 |
@@ -154,7 +154,7 @@ module CrystalMoji::Buffer
 
     # 辅助方法：从缓冲区读取短整数（大端序）
     private def read_short(position : Int32) : UInt16
-      slice = @buffer[position, @@SHORT_BYTES]
+      slice = @buffer[position, @@short_bytes]
       ((slice[0].to_i32 & 0xff) << 8 | (slice[1].to_i32 & 0xff)).to_u16
     end
 

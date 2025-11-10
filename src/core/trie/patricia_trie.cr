@@ -1,8 +1,6 @@
 module CrystalMoji::Trie
   class PatriciaTrie(V) < Hash(String, V?)
 
-
-
     def [](key : String) : V?
       has_key?(key) ? super : nil
     end
