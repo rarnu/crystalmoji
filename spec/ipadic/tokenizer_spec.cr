@@ -1,30 +1,5 @@
 require "../spec_helper"
 
-def assert_token_surfaces_equals(expected_surfaces : Array(String), actual_tokens : Array(CrystalMoji::TokenBase))
-  actual_surfaces = [] of String
-
-  actual_tokens.each do |token|
-    actual_surfaces << token.surface
-  end
-
-  puts "expected_surfaces: #{expected_surfaces}"
-  puts "actual_surfaces: #{actual_surfaces}"
-end
-
-def assert_equal_token_feature_lengths(text : String, tokenizer : CrystalMoji::TokenizerBase)
-  tokens = tokenizer.tokenize(text)
-  lengths = Set(Int32).new
-  tokens.each do |token|
-    lengths << token.get_all_features_array.size
-  end
-  lengths.size.should eq(1)
-end
-
-
-def to_string(token : CrystalMoji::Ipadic::Token) : String
-  "#{token.surface}\t#{token.get_all_features}"
-end
-
 tokenizer = CrystalMoji::Ipadic::Tokenizer.new
 
 

@@ -1,27 +1,5 @@
 require "../spec_helper"
 
-def invert(map : Hash(String, Int32)) : Hash(Int32, String)
-  inverted = Hash(Int32, String).new
-  map.each do |key, value|
-    inverted[value] = key
-  end
-  inverted
-end
-
-def assert_character_categories(category_id_map : Hash(Int32, String), character_definition : CrystalMoji::Dict::CharacterDefinitions, c : Char, categories : Array(String))
-  category_ids = character_definition.lookup_categories(c)
-  if category_ids.nil?
-    categories.should be_empty
-    return
-  end
-  categories.size.should eq category_ids.size
-
-  category_ids.each do |category_id|
-    category = category_id_map[category_id]
-    categories.should contain(category)
-  end
-end
-
 describe Crystalmoji do
   char_def = File.tempfile("kuromoji-chardef-.bin")
   compiler = CrystalMoji::Compile::CharacterDefinitionsCompiler.new(File.open(char_def.path, "w"))

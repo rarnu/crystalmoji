@@ -21,6 +21,15 @@ module CrystalMoji::Ipadic
       create_token_list(text)
     end
 
+    def furigana(text : String) : String
+      tokens = tokenize(text)
+      tokens.map(&.furigana).join("")
+    end
+
+    def remove_furigana(text : String) : String
+      text.gsub(/\[.*?\(.*?\)\]/) { |match| match.lchop('[').split('(').first }
+    end
+
     class Builder < TokenizerBase::Builder(Token)
       class_property default_kanji_length_threshold : Int32 = 2
       class_property default_other_length_threshold : Int32 = 7
